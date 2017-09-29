@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Local Weather</title>
+
+
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+      <style>
+          @import url('https://fonts.googleapis.com/css?family=Vesper+Libre');
+          
+          body {
+              background-color: #000B38;
+          }
+          
+          .flex-container{
+                height: 600px;
+                text-align: center;
+                position: relative;
+          }
+          
+          .locationTest {
+              padding-top: 250px;
+          }
+          
+          .icons {
+                display: flex;
+                height: 100px;
+                justify-content: center;
+                flex-wrap: nowrap;
+          }
+          
+          .flex-item {
+                height: 60px;
+                padding: 20px;
+                line-height: 50px;
+                vertical-align: top;
+          }
+          
+          .imgContainer {
+                background: url('http://shashgrewal.com/wp-content/uploads/2015/05/default-placeholder.png');
+                background-size: 100% 100%;
+                height: 1000px;
+          }
+          
+          .locationTest {
+              font-family: 'Vesper Libre';
+              text-shadow: 1px 1px 1px rgba(0,0,0,0.6);
+          }
+          
+          .temperature {
+              font-family: 'Vesper Libre';
+              text-shadow: 1px 1px 1px rgba(0,0,0,0.6);
+          }
+          
+          .desc {
+              font-family: 'Vesper Libre';
+              text-shadow: 1px 1px 1px rgba(0,0,0,0.6);
+          }
+          
+          .timeAt {
+              font-family: 'Vesper Libre';
+              text-shadow: 1px 1px 1px rgba(0,0,0,0.6);
+          }
+          
+          .sunrise {
+              font-family: 'Vesper Libre';
+              text-shadow: 1px 1px 1px rgba(0,0,0,0.6);
+          }
+          
+          .sunset {
+              font-family: 'Vesper Libre';
+              text-shadow: 1px 1px 1px rgba(0,0,0,0.6);
+          }
+          
+          .btnTog {
+              border-radius: 10px;
+          }
+          
+            .btnTog2 {
+              border-radius: 10px;
+          }
+          
+      </style>
+  </head>
+  <body>
+    <div class="imgContainer">
+    <div class="flex-container">
+    
+    <h1 class="locationTest"></h1>
+        
+    <div class="icons">     
+    <h3 class="temperature flex-item"></h3>
+    <h3 class="desc flex-item"></h3>
+    <h3 class="timeAt flex-item"></h3>  
+    </div>
+        
+   
+    <h5 class="sunrise"></h5>
+    <h5 class="sunset"></h5>
+    <button class="btnTog btn btn-xs btn-success">°F</button>
+    <button class="btnTog2 btn btn-xs btn-info">°C</button>
+    
+    </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script>
+    
+    $(document).ready(function(){
+        var lat;
+        var lon;
+        
+        getLocation();
+        
+        function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(showPosition);
+            } 
+        }
+        function showPosition(position) {
+        lat = position.coords.latitude;
+        lon = position.coords.longitude;
+        console.log(lat);
+        
+        
+        
+        
+//        var lat = position.coords.latitude;
+//        var lon = position.coords.longitude; 
+        $('.latContent').html(lat);
+        $('.lonContent').html(lon);
+        
+        
+        $.ajax({
+            url: 'http://api.openweathermap.org/data/2.5/weather?lat=' + lat + '&lon=' + lon + '&APPID=3c3e9271d15ab463754acc0dee1ca014',
+            success: function(data){
+                var unix = data.sys.sunrise;
+                var unix2 = data.sys.sunset;
+                var d = new Date(unix*1000).toString().split(" ");
+                var e = new Date(unix2*1000).toString().split(" ");
+                $('.sunrise').html("<img src='http://i.imgur.com/7L8uutX.png'>" + ' Sunrise time is: ' + d[4]);
+                $('.sunset').html("<img src='http://i.imgur.com/M3r6wyY.png'>" + ' Sunset time is: ' + e[4]);
+                var newDesc = titleCase(data.weather[0].description);
+                $('.desc').html(newDesc);
+                $('.locationTest').html(data.name + ", " + data.sys.country);
+                $('.temperature').html((data.main.temp - 273.15).toFixed(0) + " °C");
+                $('.btnTog').click(function(){
+                    $('.temperature').html(((data.main.temp * 1.8) - 459.67).toFixed(0) + " °F");
+                });
+                $('.btnTog2').click(function(){
+                    $('.temperature').html((data.main.temp - 273.15).toFixed(0) + " °C");
+                });
+                
+                
+                ////////////////Weather desc image ////////////////
+                var weatherImage = '';
+                var hr1 = (new Date()).getHours();
+                
+                if (data.weather[0].description.indexOf('clouds') != -1){
+                    if (hr1 <= 20 && hr1 >= 05){
+                        $('.desc').html(newDesc);
+                        weatherImage = '<img src="http://openweathermap.org/img/w/02d.png">';
+                        $('.desc').append('\n' + weatherImage);
+                    } else {
+                        $('.desc').html(newDesc);
+                        weatherImage = '<img src="http://openweathermap.org/img/w/02n.png">';
+                        $('.desc').append('\n' + weatherImage);
+                    }
+                }
+                
+                if (data.weather[0].description.indexOf('snow') != -1){
+                    $('.desc').html(newDesc);
+                    weatherImage = '<img src="http://openweathermap.org/img/w/13d.png">';
+                    $('.desc').append('\n' + weatherImage); 
+                }
+                
+                if (data.weather[0].description.indexOf('fog') != -1){
+                    $('.desc').html(newDesc);
+                    weatherImage = '<img src="http://openweathermap.org/img/w/50d.png">';
+                    $('.desc').append('\n' + weatherImage);
+                }
+                
+                if (data.weather[0].description.indexOf('clear sky') != -1){
+                    if (hr1 <= 20 && hr1 >= 05){
+                        $('.desc').html(newDesc);
+                        weatherImage = '<img src="http://openweathermap.org/img/w/01d.png">';
+                        $('.desc').append('\n' + weatherImage);
+                    } else {
+                        $('.desc').html(newDesc);
+                        weatherImage = '<img src="http://openweathermap.org/img/w/01n.png">';
+                        $('.desc').append('\n' + weatherImage);
+                    }
+                }
+                
+                if (data.weather[0].description.indexOf('drizzle') != -1){
+                    $('.desc').html(newDesc);
+                    weatherImage = '<img src="http://openweathermap.org/img/w/09d.png">';
+                    $('.desc').append('\n' + weatherImage);
+                }
+                
+                if (data.weather[0].description.indexOf('thunderstorm') != -1){
+                    $('.desc').html(newDesc);
+                    weatherImage = '<img src="http://openweathermap.org/img/w/11d.png">';
+                    $('.desc').append('\n' + weatherImage);
+                }
+                
+                if (data.weather[0].description.indexOf('mist') != -1){
+                    $('.desc').html(newDesc);
+                    weatherImage = '<img src="http://openweathermap.org/img/w/50d.png">';
+                    $('.desc').append('\n' + weatherImage);
+                }
+                
+                if (data.weather[0].description.indexOf('rain') != -1){
+                    if (hr1 <= 20 && hr1 >= 05){
+                        $('.desc').html(newDesc);
+                        weatherImage = '<img src="http://openweathermap.org/img/w/10d.png">';
+                        $('.desc').append('\n' + weatherImage);
+                    } else {
+                        $('.desc').html(newDesc);
+                        weatherImage = '<img src="http://openweathermap.org/img/w/09d.png">';
+                        $('.desc').append('\n' + weatherImage);
+                    }
+                }
+                
+                /////////////////End of weather desc///////////////
+                
+                
+                
+                ////////////BACKGROUND IMAGE DETERMINATION
+                var hr2 = (new Date()).getHours();
+                
+                var album = {
+                    nightrain: 'https://www.walldevil.com/wallpapers/w02/787826-bokeh-rain-water-drops.jpg',
+                    dayrain: 'https://wallpaperscraft.com/image/heavy_rain_rain_light_bushes_summer_60763_1920x1080.jpg',
+                    dayclearsky: 'http://bossfight.co/wp-content/uploads/2015/07/boss-fight-stock-photos-free-high-resolution-images-photography-clear-sky-road-field-sheep.jpg',
+                    nightclearsky: 'http://i.imgur.com/HF3Xxg1.jpg',
+                    snow: 'http://www.stantonbury.org.uk/wp/wp-content/uploads/snow.jpg',
+                    nightcloud: 'http://wallpapers-hd-wide.com/wp-content/uploads/2016/01/Beautiful-cloudy-night-full-moon-moonlight-1920x1080.jpg',
+                    daycloud: 'http://www.publicdomainpictures.net/pictures/40000/velka/cloudy-day-1366798736VRh.jpg',
+                    mist: 'http://vignette1.wikia.nocookie.net/demigodshaven/images/f/f5/Mist.jpg/revision/latest?cb=20110102163040',
+                    drizzley: 'http://www.whatawaytogomovie.com/wp-content/uploads/2013/04/rain-earth-day.jpg',
+                    nightdrizzle: 'https://www.walldevil.com/wallpapers/w02/787826-bokeh-rain-water-drops.jpg',
+                    fog: 'http://vignette1.wikia.nocookie.net/demigodshaven/images/f/f5/Mist.jpg/revision/latest?cb=20110102163040',
+                    thunder: 'http://www.socwall.com/images/wallpapers/17536-3008x2000.jpg'
+                };
+                
+               // I was supposed to use a 'switch' statement here. Sue me.  
+                
+                    if (data.weather[0].description.indexOf('clouds') != -1){
+                    if (hr1 <= 20 && hr1 >= 05){
+                        $('.imgContainer').css('background-image', 'url(' + album.daycloud + ')');
+                        $('.locationTest').css({'color': 'white'});
+                        $('.temperature').css({'color': 'white'});
+                        $('.desc').css({'color': 'white'});
+                        $('.timeAt').css({'color': 'white'});
+                        $('.sunrise').css({'color': 'white'});
+                        $('.sunset').css({'color': 'white'});
+                    } else {
+                        $('.imgContainer').css('background-image', 'url(' + album.nightcloud + ')');
+                        $('.locationTest').css({'color': '#white'});
+                        $('.temperature').css({'color': '#white'});
+                        $('.desc').css({'color': '#white'});
+                        $('.timeAt').css({'color': '#white'});
+                        $('.sunrise').css({'color': '#white'});
+                        $('.sunset').css({'color': '#white'});
+                    }
+                    }
+                
+                    if (data.weather[0].description.indexOf('snow') != -1){
+                    $('.imgContainer').css('background-image', 'url(' + album.snow + ')');
+                        $('.locationTest').css({'color': 'yellow'});
+                        $('.temperature').css({'color': 'yellow'});
+                        $('.desc').css({'color': 'yellow'});
+                        $('.timeAt').css({'color': 'yellow'});
+                        $('.sunrise').css({'color': 'yellow'});
+                        $('.sunset').css({'color': 'yellow'});
+                    }
+                
+                    if (data.weather[0].description.indexOf('fog') != -1){
+                    $('.imgContainer').css('background-image', 'url(' + album.fog + ')');
+                        $('.locationTest').css({'color': 'white'});
+                        $('.temperature').css({'color': 'white'});
+                        $('.desc').css({'color': 'white'});
+                        $('.timeAt').css({'color': 'white'});
+                        $('.sunrise').css({'color': 'white'});
+                        $('.sunset').css({'color': 'white'});
+                    }
+                
+                    if (data.weather[0].description.indexOf('clear sky') != -1){
+                    if (hr1 <= 20 && hr1 >= 05){
+                        $('.imgContainer').css('background-image', 'url(' + album.dayclearsky + ')');
+                        $('.locationTest').css({'color': 'white'});
+                        $('.temperature').css({'color': 'white'});
+                        $('.desc').css({'color': 'white'});
+                        $('.timeAt').css({'color': 'white'});
+                        $('.sunrise').css({'color': 'white'});
+                        $('.sunset').css({'color': 'white'});
+                    } else {
+                        $('.imgContainer').css('background-image', 'url(' + album.nightclearsky + ')');
+                        $('.locationTest').css({'color': 'white'});
+                        $('.temperature').css({'color': 'white'});
+                        $('.desc').css({'color': 'white'});
+                        $('.timeAt').css({'color': 'white'});
+                        $('.sunrise').css({'color': 'white'});
+                        $('.sunset').css({'color': 'white'});
+                    }
+                    }
+                
+                    if (data.weather[0].description.indexOf('drizzle') != -1){
+                    if (hr1 <= 20 && hr1 >= 05){
+                        $('.imgContainer').css('background-image', 'url(' + album.drizzley + ')');
+                        $('.locationTest').css({'color': 'white'});
+                        $('.temperature').css({'color': 'white'});
+                        $('.desc').css({'color': 'white'});
+                        $('.timeAt').css({'color': 'white'});
+                        $('.sunrise').css({'color': 'white'});
+                        $('.sunset').css({'color': 'white'});
+                    } else {
+                        $('.imgContainer').css('background-image', 'url(' + album.nightdrizzle + ')');
+                        $('.locationTest').css({'color': 'white'});
+                        $('.temperature').css({'color': 'white'});
+                        $('.desc').css({'color': 'white'});
+                        $('.timeAt').css({'color': 'white'});
+                        $('.sunrise').css({'color': 'white'});
+                        $('.sunset').css({'color': 'white'});
+                    }
+                    }
+                
+                    if (data.weather[0].description.indexOf('thunderstorm') != -1){
+                    $('.imgContainer').css('background-image', 'url(' + album.thunder + ')'); 
+                        $('.locationTest').css({'color': 'white'});
+                        $('.temperature').css({'color': 'white'});
+                        $('.desc').css({'color': 'white'});
+                        $('.timeAt').css({'color': 'white'});
+                        $('.sunrise').css({'color': 'white'});
+                        $('.sunset').css({'color': 'white'});
+                    }
+                
+                    if (data.weather[0].description.indexOf('mist') != -1){
+                    $('.imgContainer').css('background-image', 'url(' + album.mist + ')'); 
+                    }
+                
+                    if (data.weather[0].description.indexOf('rain') != -1){
+                    if (hr1 <= 20 && hr1 >= 05){
+                        $('.imgContainer').css('background-image', 'url(' + album.dayrain + ')');
+                        $('.locationTest').css({'color': 'white'});
+                        $('.temperature').css({'color': 'white'});
+                        $('.desc').css({'color': 'white'});
+                        $('.timeAt').css({'color': 'white'});
+                        $('.sunrise').css({'color': 'white'});
+                        $('.sunset').css({'color': 'white'});
+                    } else {
+                        $('.imgContainer').css('background-image', 'url(' + album.nightrain + ')');
+                        $('.locationTest').css({'color': 'white'});
+                        $('.temperature').css({'color': 'white'});
+                        $('.desc').css({'color': 'white'});
+                        $('.timeAt').css({'color': 'white'});
+                        $('.sunrise').css({'color': 'white'});
+                        $('.sunset').css({'color': 'white'});
+                    }
+                    }
+                
+                
+                
+                ////////////END OF BG IMAGE DETERMINATION
+                
+                
+                
+                
+                ///////////////TIME OF DAY SETTING////////////////////////
+                var hr = (new Date()).getHours();
+                console.log(hr);
+                if (hr >= 06 && hr <= 07) {
+                    $('.timeAt').html("Dawn");
+                } 
+                
+                else if (hr >= 07 && hr <= 11) {
+                    $('.timeAt').html("Morning");
+                }
+                
+                else if (hr >= 11 && hr <= 14) {
+                    $('.timeAt').html("Early Afternoon");
+                }
+                
+                else if (hr >= 14 && hr <= 17) {
+                    $('.timeAt').html("Afternoon");
+                }
+                
+                else if (hr >= 17 && hr <= 19) {
+                    $('.timeAt').html("Early evening");
+                }
+                
+                else if (hr >= 19 && hr <= 21) {
+                    $('.timeAt').html("Evening");
+                }
+                
+                else if (hr >= 21) {
+                    $('.timeAt').html("Night time");
+                }
+                ////////////END TIME OF DAY SETTING /////////////////////
+            }
+            
+           
+            
+            
+        /////////////////////END/////////////////////////    
+        }, "jsonp");
+        }
+        
+    });  
+        
+        
+        
+        /////////////FUNCTIONS/////////////
+        function titleCase(str) {  
+        str = str.toLowerCase().split(' ');
+
+        for(var i = 0; i < str.length; i++){
+        str[i] = str[i].split('');
+        str[i][0] = str[i][0].toUpperCase(); 
+        str[i] = str[i].join('');
+        }
+        return str.join(' ');
+        }
+        
+        
+        
+//        Nature graphic by <a href="http://www.flaticon.com/authors/madebyoliver">Madebyoliver</a> from <a href="http://www.flaticon.com/">Flaticon</a> is licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a>. Made with <a href="http://logomakr.com" title="Logo Maker">Logo Maker</a>
+        
+//Nature graphic by <a href="http://www.flaticon.com/authors/madebyoliver">Madebyoliver</a> from <a href="http://www.flaticon.com/">Flaticon</a> is licensed under <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a>. Made with <a href="http://logomakr.com" title="Logo Maker">Logo Maker</a>        
+
+    </script>
+  </body>
+</html>
